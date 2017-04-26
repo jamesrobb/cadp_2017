@@ -1,0 +1,48 @@
+1.1 The exchange, partition, and quick sort functions work on independent parts of memory as a result of their implementation.
+
+1.2 We would consider executing the quicksort function in parallel as it works on independent parts of memory as long as the arguments provided to it don't produce overlapping areas in an array.
+
+1.3 The rest of the methods we beleive should be executed sequentially. The functions that deal with creating/releasing test data are not assured to work properly if executed in parallel (and infact are almost sure not to work). The main function could be split up into parts of code that could be executed in parallel, but running the tests in parallel would likely skew the results of the speed tests.
+
+2.
+
+quicksort(arr, start, end):
+	middle := partition
+
+	if num_threads < MAX_THREADS:
+		num_threads := num_threads + 1
+		new_thread quicksort(arr, start, middle)
+	else:
+		quicksort(arr, start, middle)
+
+	quicksort(arr, middle+1, end)
+
+	if new_thread_created:
+		num_thread := num_threads -1
+
+
+2.1 We chose to run pquicksort recursively on the partition data because the memory used was then in independent regions. This allowed us to peform work in parallel where we would have had to wait in the past.
+
+2.2 In a call to pquicksort, if create a new thread, before the end of that call we wait to join the created thread. The created thread will join when it has finished sorting its section of the array.
+
+2.3 It works on disjoint memory because the calls to pquicksort can then work on isolated regions without needing any mechanisms for shared access to the resource. This condition is necessary as it is what allow pquicksort to sort partitions in parallel.
+
+3.
+
+3.1 The parallel version tends to execute in about half the time the sequential version does on average. This effect becomes more apparent as n becomes larger. Yes, mathemtically speaking they are roughly what we would expect when considering overhead factors.
+
+3.2 Theoretically if one was able to do a task in half its original time, and then split then do those two halves in half the time, the time saved should converge at a third. However, we do not have an infinite amount of threads, and creating/managing threads requires overhead. For this reason getting around 1/2 in time savings sounds reasonable.
+
+3.3 We create threads to deal with a half of a partition. The reason for this is that the current thread running will take care of half of the partition, and the new thread will take care of the other half. One could have created threads to parallelize the testing, but we then would not have accurate results as we wouldn't know what initial sort what resources.
+
+4
+
+4.1 We create and maintain a global atomic integer that represents the amount of threads currently running. If the amount of threads running is equal to a cap, then the thread will do the work on the two halves of the partition instead of creating a new thread and giving half of the partition to it.
+
+4.2 They can be created, however, the amount of threads that can be executed at one time is limtied to the number of cores in the cpu. Another barrier is the amount of threads the OS allows to be created at one time.
+
+4.3 Yes, however until the partition has been halved a few times the system resources are not being utilized fully. Of course, if we create too many threads we dedicate too many system resources to context switching and maitenance. Creating extra threads only helps up to a point.
+
+4.4 Looking at the graph, we can see that the speedup caps around 50%. This tells us that ~50% of the code can actually be parallelized (though in theory it should be closer to %66 percent).
+
+4.5 As we add more threads we are able to do more and more in parallel up to a point. This is why after 8 threads on our machines we stop seeing any time savings. We do not have enough cores on our machine to run more than 8 threads at a time, so anything more than this acts in a "sequential" manner.

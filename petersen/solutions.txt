@@ -1,0 +1,9 @@
+1. It is very unlikely the program will produce the same output between runs (though technically possible). Sometimes the threads alternate "perfectly", and sometimes one thread manages to enter its critical sections many times before the other.
+
+2. See peterson_noop.obj
+
+3. The program does not produce the same output everytime it is run. Sometimes one thread manages to enter its critical section some small number of times, or each thread is able to enter its critical section once.
+
+4. The code is not reasonable. The optimizer changes the while loop into an if statement with an infinite loop nested inside.
+
+5. See peterson_atomic.c. 
