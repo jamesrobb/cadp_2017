@@ -1,0 +1,25 @@
+variable
+
+monitor car()
+
+variables
+  npeople : integer := 0;
+  cond : condition := C == N;
+
+procedure
+  takeRide()
+    wait(cond)
+    npeople = 0;
+
+  load()
+    
+  unload()
+    
+end;
+
+process coaster()
+
+process passenger()
+
+end;
+
