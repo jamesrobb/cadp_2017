@@ -1,0 +1,62 @@
+1. 
+
+variables door : semaphore(1), party : semaphore(0);
+variables availableSeats : integer := K, currentlyWaiting : integer := 0;
+variable toLetIn : integer := 0;
+
+process Customer()
+	do 'remainder of code';
+	/* entry protocol beginning */
+	P(door);
+	if availableSeats = 0 -> 
+		currentlyWaiting := currentlyWaitin + 1;
+		V(door);
+		P(party);
+	[] ->
+		availableSeats := availableSeats - 1;
+		V(door);
+	fi;
+	/* entry protocol ending */
+
+	'Eat sushi';
+
+	/* exit protocol beginning */
+	P(door);
+	availableSeats := availableSeats + 1;
+	if availableSeats == K and currentlyWaiting > 0 ->
+		toLetIn = min(K, currentlyWaiting);
+		availableSeats := availableSeats - toLetIn;
+		currentlyWaiting := currentlyWaitin - toLetIn;
+		for 0 to toLetIn ->
+			V(party);
+	fi;
+
+	V(door);
+
+	/* exit protocol ending */
+
+
+	od;
+end;
+
+2.
+
+My solution works in such a way where whenever a customer tries to enter the bar he first tries to get a hold of the door. The door is a mutex and therefor only one customer is allowed to be in the doorway at a time. If he sees that there are available seats he sits down immediately. If he doesn't he waits for a semaphore called Party which will be incremented when the bar is empty. When leaving the bar if a customer sees he's the last one out and he sees that there is a queue to get in he lets as many people as there are chairs or less if there are less than that waiting.
+
+3.
+
+My arguement for there not existing a solution to this problem that is fair no matter how many semaphores you use is because the rules we are given for how the customers should behave they behave fundimentally unfair.
+
+A computation where this isn't fair no matter your semaphores if you're following the behaviour rules of the customers is as follows:
+
+	1. Customers fill up the bar so that all chairs are full.
+	2. A customer comes and sees the bar full so he waits for the entire bar to leave.
+	3. Only some of the customers leave the bar.
+	4. Another customer comes and sees empty chairs and goes in.
+	5. Repeat from step 3
+
+As can be seen the customer that came in and started waiting will have to wait forever and will starve. With starvation on a thread this can't really be fair.
+
+4.
+
+See 'sushi.c'.

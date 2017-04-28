@@ -1,0 +1,30 @@
+variable door: Semaphore(1), party: Semaphore(1);
+variable availableSeats : Integer := K, variable full : Bool := false;
+
+process Customer()
+  do 'Remainder of code';
+  /* ENTRY START */
+  P(Party)
+  P(Door)
+  if availableSeats > 1 -> V(Party);
+        availableSeats := availableSeats - 1;
+  [] otherwise
+        availableSeats := 0;
+        full = true;
+  fi;
+  V(Door)
+  /* ENTRY END */
+
+   'Eat sushi.';
+
+  /* EXIT START */
+  P(Door);
+  availableSeats := availableSeats + 1;
+  if availableSeats == K and full = true ->
+        full = false;
+        V(Party)
+  fi;
+  V(Door)
+  /* EXIT END */
+  od;
+end;
