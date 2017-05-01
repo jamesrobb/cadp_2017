@@ -1,0 +1,64 @@
+variable
+
+monitor conductor()
+
+  invariants
+    0 <= onCar <= C;
+    canBoard => onCar == 0;
+    
+    
+  variable people : integer := 0;
+  variable onCar : integer := 0;
+  variable nextCar : integer := 0;
+  variable C : integer;
+  variable M : integer;
+  variable cars : integer[M];
+  variable canBoard : boolean := true;
+  variable enterCar, leaveCar, beginLoading, beginUnloading, carEmpty : condition
+
+
+  procedure takeRide()
+     people := people + 1;
+     if people == C and canBoard -> canBoard = false, signal_all(beginLoading);
+     fi;
+     wait(enterCar);
+     onCar := onCar + 1;
+     if onCar == C -> signal(beginUnloading);
+     fi;
+     wait(leaveCar);
+     onCar := onCar - 1;
+     people := people - 1;
+     if onCar == 0 -> signal(carEmpty);
+     fi;
+  end;
+
+  procedure load(car_number : integer)
+     if people < C or carNumber != nextCar -> wait(beginLoading);
+     fi;
+     signal(enterCar, C);
+  end;
+
+  procedure unload() 
+     if onCar < C -> wait(beginUnloading);
+     fi;
+     signal(leaveCar, C);
+     if onCar > 0 -> wait(carEmpty);
+     nextCar = (nextCar + 1) % M;
+     canBoard = true;
+     signal_all(beginLoading);
+  end;
+end;
+
+process coaster()
+  while(1) ->
+    load(car_number);
+    unload();
+
+process passenger()
+  if rand() % 2 == 0 ->
+    takeRide();
+  [] ->
+    other();
+
+end;
+
