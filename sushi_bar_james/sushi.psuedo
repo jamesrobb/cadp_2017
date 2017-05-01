@@ -1,0 +1,34 @@
+variable K: Integer := 0, M: Integer := 0, seats_occupied: Integer := 0, waiters :Integer := 0
+variable waiter_sem: Semaphore(0), so_sem: Semaphore(1)
+
+process Customer()
+	do 'remainder of of code';
+
+	variable is_waiter: Boolean := false
+
+	P(so_sem);
+	if seats_occupied = K then
+		is_waiter := true
+		waiters := waiters + 1
+	else
+		seats_occupied := seats_occupied + 1
+	fi
+	V(so_sem);
+
+	if is_waiter = true then
+		P(waiter_sem)
+	fi
+
+	`sit and eat`
+
+	P(so_sem);
+	seats_occupied := seats_occupied - 1;
+	if seats_occupied = 0 then
+		for 1..min(waiters, K)
+			waiters := waiters - 1;
+			seats_occupied := seats_occupied + 1;
+			V(waiter_sem);
+		rof;
+	fi;
+	V(so_sem);
+end

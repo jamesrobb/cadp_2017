@@ -1,0 +1,45 @@
+variable m1: Semaphore(1), m2: Semaphore(1), m3: Semaphore(1);
+variable read: Semaphore(1), write: Semaphore(1);
+variable nr: Integer := 0, nw: Integer := 0;
+
+process Reader()
+  do `Remainder of code`;
+     P(m3);
+         P(read);
+             P(m1);
+                 nr := nr + 1;
+                 if nr = 1 -> P(write);
+                 [] otherwise skip;
+                 fi;
+             V(m1);
+         V(read);
+     V(m3);
+     `Read the data base`;
+     P(m1);
+         nr := nr - 1;
+         if nr = 0 -> V(write);
+         [] otherwise skip;
+         fi;
+     V(m1);
+  od;
+end
+
+process Writer()
+  do `Remainder of code`;
+     P(m2);
+         nw := nw + 1
+         if nw = 1 -> P(read);
+         [] otherwise skip;
+         fi;
+     V(m2);
+     P(write);
+        `Read and write the data base`;
+     V(write);
+     P(m2);
+         nw := nw - 1;
+         if nw = 0 -> V(read);
+         [] otherwise skip;
+         fi;
+     V(m2);
+  od;
+end

@@ -1,0 +1,13 @@
+2.
+
+This solution ensures the requirements by first checking how many seats are occupied. If all seats are occupied we can set a local variable to have the customer wait on a semaphore (waiter_sem) until the sushi bar has cleared. This limits K customers to being able to have a seat. If not all customers leave, when a new one arrives he/she will be free to take a seat immediately by this logic.
+
+When the sushi bar has cleared, we increment the semaphore (waiter_sem) that allows waiting customers to get a seat. The way this particular implementation works is that K waiting customers will get priority once the sushi bar has cleared. In order for new comers to snag the free seats from the waiting customers, they need access to the so_sem semaphore, but they can not have it until min(K, waiters) waiting customers have been signaled.
+
+Due to the ambiguity of the description, it seemed appropriate to give waiting customers some preference as there isn't clear instruction on what to do if K (or less) waiting customers want to take a seat in the newly cleared bar and a new customer comes along. Otherwise it would be like K (or less) waiting customers finally being shown to their seat and a new customers tries to snatch it right from under them. I argue the seats at that point aren't really "free" for a new customer to take.
+
+3.
+
+There is no semaphore implementation that is fair for this solution. While some preference can be shown to waiting customers, new comers can still assume empty seats if they become available even if there is a long queue of customers waiting for the sushi bar to be cleared. Another solution would be required if someone wanted the situation to be fair.
+
+For example, the sushi bar clears, and K of 10K waiting customers take a seat. Two leave, and then two new customers take the empty seats. These two new customers then cut in front of 9K waiting customers.

@@ -1,0 +1,11 @@
+Semaphores:
+
+m1 - provides exclusive access to sections of code to change the number of readers and halt/resume writers
+m2 - provides exclusive access to sections of code to change the number of writers and halt/resume readers
+m3 - used as a "wrapper" of sorts. its main function is to give preference to writers
+write - provides exclusive access to code that writes to the database
+read - used to block reading threads until they can safely read
+
+Each writer has exclusive access to the database because in order for a writer to have access to the database it needs the write semaphore. Another writer can not get access to that semaphore at the same time. A reader can not be reading while a writer is writing because if a writer is writing then it has taken the read semaphore and no readers can enter the critical section. Also, if a reader is in the critical section then a writer can not get the write semaphore as it has been take by a reading process.
+
+The m3 semaphore is what gives preference to writers. A writer can queue waiting for the read semaphore while some reading process has it. However, when the reading process releases it, it must then also release m3 before another reader can take the read semaphore. This means that a waiting writer will always get the read semaphore before another reader has the chance to. This behaviour clearly demonstrates preference to writers.
