@@ -40,8 +40,8 @@
 #include <float.h>
 
 #define MIN_SEGMENT 1000
-#define NUM_TESTS   10
-#define MAX_THREADS 16
+#define NUM_TESTS   1
+#define MAX_THREADS 4
 
 struct args_struct {
     int* array;
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
     //        { 1000, 10000, 100000, 1000000, 10000000, 100000000 };
 
     size_t lengths[] =
-            { 10000000 };
+            { 100000000 };
     int lengths_used = (int) (sizeof(lengths) / sizeof(lengths[0]));
     double sort_times_sequential[lengths_used][MAX_THREADS][NUM_TESTS];
     double sort_times_parallel[lengths_used][MAX_THREADS][NUM_TESTS];
