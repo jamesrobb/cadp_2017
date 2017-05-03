@@ -1,0 +1,11 @@
+These solutions work correctly as they simulate the conditions outlined in the problem.
+
+The general idea is that a car process keeps polling the monitor to load and unload. Running around the track is assumed to happen, though not explicitly stated. Once enough custmers have queued to take a ride, the load method is signaled (if it was waiting), and C waiting customers are signaled they can board the car.
+
+Again, runnning around the track is assumed. After C customers are loaded, the unload method is signaled and C customers are then unboarded. Before the unload method can finish it waits for the last customer unboarding to signal that the car is empty. From here the unload method updates the next car to be used and the unload method finishes.
+
+The code is free of deadlocks because:
+- Customers don't depend on each other, so they can function independently.
+- The relationship between customers and cars doesn't assume an execution order. If the load or unload method is called before the right amount of customers needed for both situations is present, they wait for a signal. If enough customers are present, the proceed with their intended actions.
+
+Specific details can be referenced in the psuedo code. 
