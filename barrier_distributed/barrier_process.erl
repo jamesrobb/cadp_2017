@@ -1,6 +1,35 @@
 -module(barrier_process).
 -export([spawn_process/1, spawn_process/2]).
 
+% To run a simulation you start the initial process by calling
+% spawn_process(N) where N is the total amount of processes your 
+% barrier is supposed to block.
+% After that you create N-1 other processes with 
+% spawn_process(ConnectPid, N) where connect pid is the pid returned 
+% from the initial call to the spawn_process(N) or any other pid returned 
+% from the calls to the later calls to spawn_process(ConnectPid,N) and N 
+% is the total amount of processes your barrier is supposed to block.
+%
+% The system works in such a fashion where the initial action of the processes 
+% is to discover the other nodes in the system. After discovering other nodes 
+% in the system the nodes are then a part of the total system.
+% This process is repeated untill there are N processes in the system which then 
+% broadcast to each other that they are ready to start their "Tasks()", which could 
+% be substituded with any functionality you might want to synchronize.
+%
+% Discovery is done through messaging other nodes inside the system that you would 
+% like to join the system. When that message is processed you will be added to 
+% a list which is propagated through the system in order to keep consistency within 
+% nodes in the system.
+%
+% Some major assumptions are made in this distributed barrier. Those include 
+% that we do not have any bad characters in the system, that no node will ever 
+% crash or not do what it is supposed to.
+%
+% This implementation works only if the number of processes that are in the system 
+% is exactly the amount of nodes the barrier is supposed to block.
+
+
 spawn_process(N) ->
 	spawn(fun() -> start_discovery(N, [self()], 0) end).
 
