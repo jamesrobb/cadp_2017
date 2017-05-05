@@ -1,12 +1,14 @@
 -module(passenger).
 -export([spawn_passengers/1]).
 
+% Used to spawn N passengers
 spawn_passengers(N) ->
 	spawn_passengers(1, N, fun () -> spawn(fun () -> take_ride(true) end) end).
 
 spawn_passengers(Max, Max, F) -> [F()];
 spawn_passengers(I, Max, F) -> [F() | spawn_passengers(I+1, Max, F) ].
 
+% FirstEntry is a boolean to denote first attempt to take a ride
 take_ride(FirstEntry) ->
 	timer:sleep(rand:uniform(2000)),
 	if

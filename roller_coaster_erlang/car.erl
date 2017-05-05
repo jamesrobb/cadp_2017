@@ -1,14 +1,14 @@
 -module(car).
 -export([spawn_cars/2]).
 
-% N cars, each holds C passengers
+% Spawns N cars, each holds C passengers
 spawn_cars(N, C) ->
 	spawn_cars(1, N, fun () -> spawn(fun () -> load(C, []) end) end).
 
 spawn_cars(Max, Max, F) -> [F()];
 spawn_cars(I, Max, F) -> [F() | spawn_cars(I+1, Max, F) ].
 
-% C capacity, Passenger in car
+% C seats available in the car, Passengers is list of Pids of passengers in car
 load(C, Passengers) ->
 	receive
 		{Pid, boarded} when length(Passengers) + 1 < C ->
@@ -18,11 +18,12 @@ load(C, Passengers) ->
 			unload(C, Passengers ++ [Pid])
 	end.
 
-% C capacity, Passengers in car
+% Base case with empty Passengers list
 unload(C, []) ->
 	conductor!{self(), ride_finished},
 	load(C, []);
 
+% C seats available in the car, Passengers is list of Pids of passengers in car
 unload(C, Passengers) ->
 	X = hd(Passengers),
 	X!{self(), ride_finished},

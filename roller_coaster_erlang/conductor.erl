@@ -6,7 +6,7 @@ start(Cars, C) ->
 	Pid = spawn(fun () -> assign_car(Cars, 0, C) end),
 	register(conductor, Pid).
 
-% Pids of Cars, N currently assigned a seat, C capacity
+% Pids of Cars, N currently assigned a seat in a car, C seats in a car total
 assign_car(Cars, N, C) ->
 	receive
 		{Pid, board} when N < C ->
@@ -17,7 +17,7 @@ assign_car(Cars, N, C) ->
 			delay_assignment(Cars, C)
 	end.
 
-% Pids of Cars, C capacity
+% Pids of Cars, C seats in a car total
 delay_assignment(Cars, C) ->
 	X = hd(Cars),
 	receive

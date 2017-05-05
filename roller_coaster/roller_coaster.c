@@ -5,9 +5,9 @@
 #include <stdbool.h>
 #include <stdatomic.h>
 
-#define M   10
-#define N   40
-#define C   2
+#define M   3
+#define N   15
+#define C   5
 
 int num_people = 0;
 int on_car = 0;
