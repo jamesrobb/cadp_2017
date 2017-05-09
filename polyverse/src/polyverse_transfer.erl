@@ -1,5 +1,5 @@
 -module(polyverse_transfer).
--export([encrypt/6,pad/2, hexstring/1]).
+-export([encrypt/6,pad/2, hexstring/1, sendFile/4]).
 
 encrypt(IoDeviceIn, IoDeviceOut, Context, BlockSize, Key, Ivec) ->
 	case file:read(IoDeviceIn, BlockSize) of
@@ -37,3 +37,33 @@ hexstring(Binary) when is_binary(Binary) ->
     lists:flatten(lists:map(
         fun(X) -> io_lib:format("~2.16.0b", [X]) end, 
         binary_to_list(Binary))).
+
+
+receiveFile() ->
+    receive
+        {FromPid, FromNode, add, Hashedname, Binary} ->
+            file:write(Hashedname, Binary), % error handling TODO
+        {FromPid, FromNode}!{ok}
+    % after 10 seconds time it out
+    after 10000 ->
+              timeout
+    end.
+
+sendFile(ToPid, ToNode, Filename) ->
+    case file:read_file(Filename) of
+        {ok, Binary} ->
+            {ok, Binary} = file:read(Filename),
+            % encryption on binary %
+            %
+            % end 
+            Hashedname = crypto:hash(sha512, Binary),
+            % send it to another node
+            {ToPid, ToNode}!{self(), node(), add, Hashedname, Binary},
+            receive
+                  {ok} -> ok
+            after 10000 ->
+                  timeout
+            end;
+        {error, Reason} ->
+            io:format("something went wrong. Reason: ~w~n", [Reason])
+   end.
