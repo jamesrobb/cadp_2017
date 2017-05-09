@@ -3,7 +3,7 @@
 -export([start/2, stop/1, add_file/1, get_file/1, get_file_list/0, connect_to_node/1]).
  
 start(normal, Args) ->
-	io:format("application pid: ~w ~n", [self()]),
+	io:format("Application pid: ~w ~n", [self()]),
 	polyverse_super:start_link(Args).
  
 stop(_State) ->

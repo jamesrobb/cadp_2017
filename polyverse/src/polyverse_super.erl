@@ -5,8 +5,7 @@
 start_link(Args) ->
 	supervisor:start_link({local,?MODULE}, ?MODULE, Args).
  
-init(Args) ->
-	io:format("polyverse super args: ~w ~n", [Args]),
+init(_Args) ->
 	MaxRestart = 2,
 	MaxTime = 3600,
 	{ok, {{one_for_one, MaxRestart, MaxTime},

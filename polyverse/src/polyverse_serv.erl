@@ -23,7 +23,7 @@ add_file(FileName) ->
 
 % API for getting a file from Polyverse
 get_file(FileName) ->
-	case lists:member(FileName, get_file_list()) of
+	case lists:member(FileName, get_local_files_list()) of
 		true ->
 			io:format("File ~s already in local storage.~n", [FileName]);
 		false ->
@@ -36,7 +36,7 @@ get_file_from_network([], FileName) ->
 
 get_file_from_network(Nodes, FileName) ->
 	RemoteNode = hd(Nodes),
-	case gen_server:call({polyverse_serv, RemoteNode}, {request_file, RemoteNode, FileName}) of
+	case gen_server:call({polyverse_serv, RemoteNode}, {request_file, node(), FileName}) of
 		blacklisted ->
 			io:format("Node ~w has blacklisted this node.~n", [RemoteNode]),
 			get_file_from_network(tl(Nodes), FileName);
@@ -60,7 +60,7 @@ add_node(Node) ->
 			io:format("Unable to connect to node: ~s~n", [Node])
 	end.
 
-read_files_from_storage() ->
+get_local_files_list() ->
 	{ok, StorageDirectory} = application:get_env(storage_directory),
 	{ok, FileNames} = file:list_dir(StorageDirectory),
 	FileNames.
@@ -70,18 +70,19 @@ read_files_from_storage() ->
 %
 init([]) ->
 	io:format("Files in storage: ~n"),
-	[io:format("~s ~n", [X]) || X <- read_files_from_storage()],
+	[io:format("~s ~n", [X]) || X <- get_local_files_list()],
 	{ok, #state{blacklist=[]}}.
 
 % When a file is request, spawn a thread to send it back if it exists
 % A message is sent back denoting that the file is being transmitted
 handle_call({request_file, Node, FileName}, _From, State) ->
+	io:format("Node ~w is requesting file ~s ~n", [Node, FileName]),
 	NodeBlacklisted = lists:member(Node, State#state.blacklist),
 	if
 		NodeBlacklisted == true ->
 			{reply, blacklisted, State};
 		true ->
-			case lists:member(FileName, get_file_list()) of
+			case lists:member(FileName, get_local_files_list()) of
 				true ->
 					{ok, StorageDirectory} = application:get_env(storage_directory),
 					FileLocation = lists:concat([StorageDirectory, FileName]),
@@ -120,7 +121,7 @@ handle_call({broadcast_file, FileName}, _From, State) ->
 
 % List files currently in local storage
 handle_call({get_file_list}, _From, State) ->
-	{reply, read_files_from_storage(), State};
+	{reply, get_local_files_list(), State};
 
 % Adds a file by file name to the local polyverse storage and initiates broadcast of the file to other nodes
 handle_call({add_local_file, FileName}, _From, State) ->
