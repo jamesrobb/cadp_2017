@@ -15,19 +15,26 @@ receive_file(_Node, FileName, Binary) ->
 	io:format("Attempting to receive file.~n"),
 	{ok, StorageDirectory} = application:get_env(storage_directory),
 	FileLocation = lists:concat([StorageDirectory, FileName]),
-    file:write(FileLocation, Binary), % error handling TODO
+	io:format("Attempting to write received file ~s to ~s ~n", [FileName, FileLocation]),
+	{ok, WriteDevice} = file:open(FileLocation, [write, binary]),
+    file:write(WriteDevice, Binary), % error handling TODO
+    file:close(WriteDevice),
 	Return = case file:open(FileLocation, [read, binary]) of
-		{ok, IoDevice} ->
+		{ok, ReadDevice} ->
 			Context = crypto:hash_init(sha256),
-			Digest = produce_digest(IoDevice, Context, 128),
+			Digest = produce_digest(ReadDevice, Context, 128),
 			if
 				Digest =/= FileName ->
-					file:close(IoDevice),
+					file:close(ReadDevice),
 					file:delete(FileLocation),
 					malicious_file;
 				Digest =:= FileName ->
 					file_written
 			end;
+		{error, Reason} ->
+			file:delete(FileLocation),
+			io:format("Can't verify file. Error opening received file for reason: ~s ~n", [Reason]),
+			error;
 		_ ->
 			file:delete(FileLocation),
 			error
