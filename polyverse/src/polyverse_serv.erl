@@ -116,7 +116,7 @@ handle_call({receive_file, Node, FileName, Binary}, _From, State) ->
 handle_call({broadcast_file, FileName}, _From, State) ->
 	{ok, StorageDirectory} = application:get_env(storage_directory),
 	FileLocation = lists:concat([StorageDirectory, FileName]),
-	[spawn(fun() -> polyverse_transfer:send_file(X, FileLocation, FileName) end) || X <- nodes()],
+	[spawn(fun() -> polyverse_transfer:send_file(X, FileLocation, FileName) end) || X <- nodes(), lists:member(X, State#state.blacklist) == false],
 	{reply, broadcast_made, State};
 
 % List files currently in local storage
