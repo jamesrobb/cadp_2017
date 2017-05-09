@@ -1,14 +1,16 @@
 -module(barrier_process).
--export([spawn_process/1, spawn_process/2]).
+-export([spawn_helper/1, spawn_process/1, spawn_process/2]).
 
 % To run a simulation you start the initial process by calling
 % spawn_process(N) where N is the total amount of processes your 
 % barrier is supposed to block.
 % After that you create N-1 other processes with 
-% spawn_process(ConnectPid, N) where connect pid is the pid returned 
+% spawn_process(ConnectPid, N) where ConnectPid is the pid returned 
 % from the initial call to the spawn_process(N) or any other pid returned 
 % from the calls to the later calls to spawn_process(ConnectPid,N) and N 
 % is the total amount of processes your barrier is supposed to block.
+% This can also be done automatically using spawn_helper(N) which will
+% a spawn N processes and connect them to each other
 %
 % The system works in such a fashion where the initial action of the processes 
 % is to discover the other nodes in the system. After discovering other nodes 
@@ -29,6 +31,16 @@
 % This implementation works only if the number of processes that are in the system 
 % is exactly the amount of nodes the barrier is supposed to block.
 
+spawn_helper(N) ->
+	First = spawn_process(N),
+	spawn_helper(First, N, N-1).
+
+spawn_helper(ConnectPid, N, 0) ->
+	spawn_process(ConnectPid, N);
+
+spawn_helper(ConnectPid, N, Count) when Count > 0 ->
+	spawn_process(ConnectPid, N),
+	spawn_helper(ConnectPid, N, Count-1).
 
 spawn_process(N) ->
 	spawn(fun() -> start_discovery(N, [self()], 0) end).
