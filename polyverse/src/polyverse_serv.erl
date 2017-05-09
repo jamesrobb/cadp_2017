@@ -12,16 +12,17 @@ init([]) ->
 	{ok, Filenames} = file:list_dir(StorageDirectory),
 	io:format("files in storage ~s~n", [Filenames]),
 	io:format("polyverse server inited.~n"),
-	{ok, IoDeviceIn} = file:open("test.txt", [read, binary]),
-	file:delete("tmp"),
-	{ok, IoDeviceOut} = file:open("tmp", [write, binary]),
-	{ok, Key} = application:get_env(aes_key),
-	{ok, Ivec} = application:get_env(aes_ivec),
-	Context = crypto:hash_init(sha256),
-	{ok, Digest} = polyverse_transfer:encrypt(IoDeviceIn, IoDeviceOut, Context, 16, Key, Ivec),
-	{ok, StorageDirectory} = application:get_env(storage_directory),
-	file:copy("tmp", lists:concat([StorageDirectory, Digest])),
-	file:delete("tmp"),
+	{ok, GpgId} = application:get_env(gpg_id),
+	polyverse_transfer:encrypt('tests.txt', 'tmp', GpgId),
+	case file:open('tmp', [read, binary]) of
+		{ok, TmpFileDevice} ->
+			Context = crypto:hash_init(sha256),
+			Digest = polyverse_transfer:produce_digest(TmpFileDevice, Context, 128),
+			file:copy("tmp", lists:concat([StorageDirectory, Digest])),
+			file:delete("tmp");
+		{error, Reason} ->
+			io:format("Error encrypting file. Reason: ~w ~n", [Reason])
+	end,
 	{ok, []}.
 
 handle_call(_Data, _From, _Cats) ->

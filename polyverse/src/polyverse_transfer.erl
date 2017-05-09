@@ -1,5 +1,5 @@
 -module(polyverse_transfer).
--export([encrypt/6,pad/2, hexstring/1]).
+-export([encrypt/6, encrypt/3, produce_digest/3, pad/2, hex_string/1]).
 
 encrypt(IoDeviceIn, IoDeviceOut, Context, BlockSize, Key, Ivec) ->
 	case file:read(IoDeviceIn, BlockSize) of
@@ -10,9 +10,25 @@ encrypt(IoDeviceIn, IoDeviceOut, Context, BlockSize, Key, Ivec) ->
 			io:format("~s~n", [Data]),
 			encrypt(IoDeviceIn, IoDeviceOut, NewContext, BlockSize, Key, crypto:next_iv(aes_cbc, EncryptedData));
 		eof ->
-			Digest = hexstring(crypto:hash_final(Context)),
+			Digest = hex_string(crypto:hash_final(Context)),
 			io:format("eof. Digest: ~s ~n", [Digest]),
 			{ok, Digest}
+	end.
+
+encrypt(InputFileName, OutputFileName, GpgId) ->
+	Command = lists:concat(['gpg --output ', OutputFileName, ' -r ', GpgId, ' -e ', InputFileName]),
+	io:format("~s ~n", [Command]),
+	os:cmd(Command).
+
+produce_digest(IoDevice, Context, BlockSize) ->
+	case file:read(IoDevice, BlockSize) of
+		{ok, Data} ->
+			NewContext = crypto:hash_update(Context, Data),
+			produce_digest(IoDevice, NewContext, BlockSize);
+		eof ->
+			Digest = hex_string(crypto:hash_final(Context)),
+			io:format("Digest: ~s", [Digest]),
+			Digest
 	end.
 
 % Pads Data to Blocksize with 0's. Last byte written is the amount of bytes added.
@@ -33,7 +49,7 @@ pad(Data, BlockSize, Added) ->
 			pad(Data ++ [0], BlockSize, Added + 1)
 	end.
 
-hexstring(Binary) when is_binary(Binary) ->
+hex_string(Binary) when is_binary(Binary) ->
     lists:flatten(lists:map(
         fun(X) -> io_lib:format("~2.16.0b", [X]) end, 
         binary_to_list(Binary))).
