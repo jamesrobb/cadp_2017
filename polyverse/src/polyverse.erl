@@ -1,6 +1,6 @@
 -module(polyverse).
 -behaviour(application).
--export([start/2, stop/1, add_file/1, get_file/1, get_local_file_list/0, connect_to_node/1]).
+-export([start/2, stop/1, add_file/1, get_file/1, get_file_list/0, connect_to_node/1]).
  
 start(normal, Args) ->
 	io:format("Application pid: ~w ~n", [self()]),
@@ -19,7 +19,7 @@ get_file(FileName) ->
 	polyverse_serv:get_file(FileName).
 
 % List files on this Polyverse node
-get_local_file_list() ->
+get_file_list() ->
 	polyverse_serv:get_file_list().
 
 % Connect this node another Polyverse (Erlang) node
