@@ -1,7 +1,7 @@
 -module(polyverse_serv).
 -behaviour(gen_server).
 -export([start_link/0]).
--export([init/1, add_file/1, get_file/1, get_file_list/0, add_node/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([init/1, add_file/1, get_file/1, get_file_list/0, get_local_files_list/0, add_node/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -record(state, {blacklist=[]}).
 
@@ -61,7 +61,7 @@ add_node(Node) ->
 	end.
 
 get_local_files_list() ->
-	{ok, StorageDirectory} = application:get_env(storage_directory),
+	{ok, StorageDirectory} = application:get_env(polyverse, storage_directory),
 	{ok, FileNames} = file:list_dir(StorageDirectory),
 	FileNames.
 
