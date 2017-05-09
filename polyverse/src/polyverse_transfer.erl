@@ -1,5 +1,5 @@
 -module(polyverse_transfer).
--export([encrypt/3, decrypt/2, produce_digest/3, pad/2, hex_string/1]).
+-export([encrypt/3, decrypt/2, receive_file/3, send_file/3, produce_digest/3, pad/2, hex_string/1]).
 
 encrypt(InputFileName, OutputFileName, GpgId) ->
 	Command = lists:concat(['gpg --output ', OutputFileName, ' -r ', GpgId, ' -e ', InputFileName]),
@@ -10,6 +10,39 @@ decrypt(InputFileName, OutputFileName) ->
 	Command = lists:concat(['gpg --output ', OutputFileName, ' -d ', InputFileName]),
 	io:format("~s ~n", [Command]),
 	os:cmd(Command).
+
+receive_file(_Node, FileName, Binary) ->
+	io:format("Attempting to receive file.~n"),
+	{ok, StorageDirectory} = application:get_env(storage_directory),
+	FileLocation = lists:concat([StorageDirectory, FileName]),
+    file:write(FileLocation, Binary), % error handling TODO
+	Return = case file:open(FileLocation, [read, binary]) of
+		{ok, IoDevice} ->
+			Context = crypto:hash_init(sha256),
+			Digest = produce_digest(IoDevice, Context, 128),
+			if
+				Digest =/= FileName ->
+					file:close(IoDevice),
+					file:delete(FileLocation),
+					malicious_file;
+				Digest =:= FileName ->
+					file_written
+			end;
+		_ ->
+			file:delete(FileLocation),
+			error
+	end,
+	Return.
+
+send_file(ToNode, FileLocation, FileName) ->
+	io:format("Attempting to send file.~n"),
+    case file:read_file(FileLocation) of
+        {ok, Binary} ->
+            % send it to another node
+            gen_server:call({polyverse_serv, ToNode}, {file_transfer, node(), FileName, Binary});
+        {error, Reason} ->
+            io:format("Something went wrong. Reason: ~w~n", [Reason])
+   end.
 
 produce_digest(IoDevice, Context, BlockSize) ->
 	case file:read(IoDevice, BlockSize) of
@@ -44,33 +77,3 @@ hex_string(Binary) when is_binary(Binary) ->
     lists:flatten(lists:map(
         fun(X) -> io_lib:format("~2.16.0b", [X]) end, 
         binary_to_list(Binary))).
-
-
-receiveFile() ->
-    receive
-        {FromPid, FromNode, add, Hashedname, Binary} ->
-            file:write(Hashedname, Binary), % error handling TODO
-        {FromPid, FromNode}!{ok}
-    % after 10 seconds time it out
-    after 10000 ->
-              timeout
-    end.
-
-sendFile(ToPid, ToNode, Filename) ->
-    case file:read_file(Filename) of
-        {ok, Binary} ->
-            {ok, Binary} = file:read(Filename),
-            % encryption on binary %
-            %
-            % end 
-            Hashedname = crypto:hash(sha512, Binary),
-            % send it to another node
-            {ToPid, ToNode}!{self(), node(), add, Hashedname, Binary},
-            receive
-                  {ok} -> ok
-            after 10000 ->
-                  timeout
-            end;
-        {error, Reason} ->
-            io:format("something went wrong. Reason: ~w~n", [Reason])
-   end.
