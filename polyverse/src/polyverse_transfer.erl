@@ -46,7 +46,7 @@ send_file(ToNode, FileLocation, FileName) ->
     case file:read_file(FileLocation) of
         {ok, Binary} ->
             % send it to another node
-            gen_server:call({polyverse_serv, ToNode}, {file_transfer, node(), FileName, Binary});
+            gen_server:call({polyverse_serv, ToNode}, {receive_file, node(), FileName, Binary});
         {error, Reason} ->
             io:format("Something went wrong. Reason: ~w~n", [Reason])
    end.
