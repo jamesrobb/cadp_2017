@@ -1,22 +1,13 @@
 -module(polyverse_transfer).
--export([encrypt/6, encrypt/3, produce_digest/3, pad/2, hex_string/1]).
-
-encrypt(IoDeviceIn, IoDeviceOut, Context, BlockSize, Key, Ivec) ->
-	case file:read(IoDeviceIn, BlockSize) of
-		{ok, Data} ->
-			EncryptedData = crypto:block_encrypt(aes_cbc256, Key, Ivec, pad(Data, BlockSize)),
-			file:write(IoDeviceOut, EncryptedData),
-			NewContext = crypto:hash_update(Context, EncryptedData),
-			io:format("~s~n", [Data]),
-			encrypt(IoDeviceIn, IoDeviceOut, NewContext, BlockSize, Key, crypto:next_iv(aes_cbc, EncryptedData));
-		eof ->
-			Digest = hex_string(crypto:hash_final(Context)),
-			io:format("eof. Digest: ~s ~n", [Digest]),
-			{ok, Digest}
-	end.
+-export([encrypt/3, decrypt/2, produce_digest/3, pad/2, hex_string/1]).
 
 encrypt(InputFileName, OutputFileName, GpgId) ->
 	Command = lists:concat(['gpg --output ', OutputFileName, ' -r ', GpgId, ' -e ', InputFileName]),
+	io:format("~s ~n", [Command]),
+	os:cmd(Command).
+
+decrypt(InputFileName, OutputFileName) ->
+	Command = lists:concat(['gpg --output ', OutputFileName, ' -d ', InputFileName]),
 	io:format("~s ~n", [Command]),
 	os:cmd(Command).
 
@@ -27,7 +18,7 @@ produce_digest(IoDevice, Context, BlockSize) ->
 			produce_digest(IoDevice, NewContext, BlockSize);
 		eof ->
 			Digest = hex_string(crypto:hash_final(Context)),
-			io:format("Digest: ~s", [Digest]),
+			io:format("Digest: ~s ~n", [Digest]),
 			Digest
 	end.
 
