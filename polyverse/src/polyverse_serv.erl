@@ -100,11 +100,15 @@ sync_lists_and_send([LocalHead|Local], [RemoteHead|Remote], LocalNode, RemoteNod
         false ->
 	        {ok, StorageDirectory} = application:get_env(polyverse, storage_directory),
 	        FileLocation = lists:concat([StorageDirectory, LocalHead]),
-	        polyverse_transfer:send_file(RemoteNode, FileLocation, LocalHead)
+	        polyverse_transfer:send_file(RemoteNode, FileLocation, LocalHead);
+	    true ->
+	    	ok
         end,
     case RHinLocal of
         false ->
-            gen_server:call({polyverse_serv, RemoteNode}, {request_file, LocalNode, RemoteHead})
+            gen_server:call({polyverse_serv, RemoteNode}, {request_file, LocalNode, RemoteHead});
+        true ->
+        	ok
         end,
     sync_lists_and_send(Local, Remote, LocalNode, RemoteNode).
 
