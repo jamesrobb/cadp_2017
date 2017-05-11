@@ -55,10 +55,58 @@ get_file_list() ->
 add_node(Node) ->
 	case net_kernel:connect_node(Node) of
 		true ->
-			io:format("Connected to Polyverse via node: ~s~n", [Node]);
+			io:format("Connected to Polyverse via node: ~s~n", [Node]),
+			timer:sleep(1000),
+            sync_with_nodes();
 		false ->
 			io:format("Unable to connect to node: ~s~n", [Node])
 	end.
+
+sync_with_nodes() ->
+    LocalFiles = get_local_files_list(),
+    NodesList = nodes(),
+    sync_with_node(NodesList, LocalFiles).
+
+sync_with_node([], _) ->
+    sync_done;
+
+sync_with_node([Node|Nodes], LocalFiles) ->
+    io:format("attempting sync with ~w~n", [Node]),
+    RemoteFiles = gen_server:call({polyverse_serv, Node}, {get_file_list}),
+    sync_lists_and_send(LocalFiles, RemoteFiles, node(), Node),
+    NewLocalFiles = get_local_files_list(),
+    sync_with_node(Nodes, NewLocalFiles).
+
+sync_lists_and_send([], [], _, _) ->
+    sync_done;
+
+sync_lists_and_send([LocalHead|Local], [LocalHead|Remote], LocalNode, RemoteNode) ->
+    sync_lists_and_send(Local, Remote, LocalNode, RemoteNode);
+
+sync_lists_and_send([LocalHead|Local], [], LocalNode, RemoteNode) ->
+    {ok, StorageDirectory} = application:get_env(polyverse, storage_directory),
+    FileLocation = lists:concat([StorageDirectory, LocalHead]),
+    polyverse_transfer:send_file(RemoteNode, FileLocation, LocalHead),
+    sync_lists_and_send(Local, [], LocalNode, RemoteNode);
+
+sync_lists_and_send([], [RemoteHead|Remote], LocalNode, RemoteNode) ->
+    gen_server:call({polyverse_serv, RemoteNode}, {request_file, LocalNode, RemoteHead}),
+    sync_lists_and_send([], Remote, LocalNode, RemoteNode);
+
+sync_lists_and_send([LocalHead|Local], [RemoteHead|Remote], LocalNode, RemoteNode) ->
+    LHinRemote = lists:member(LocalHead, Remote),
+    RHinLocal = lists:member(RemoteHead, Local),
+    case LHinRemote of
+        false ->
+	        {ok, StorageDirectory} = application:get_env(polyverse, storage_directory),
+	        FileLocation = lists:concat([StorageDirectory, LocalHead]),
+	        polyverse_transfer:send_file(RemoteNode, FileLocation, LocalHead)
+        end,
+    case RHinLocal of
+        false ->
+            gen_server:call({polyverse_serv, RemoteNode}, {request_file, LocalNode, RemoteHead})
+        end,
+    sync_lists_and_send(Local, Remote, LocalNode, RemoteNode).
 
 get_local_files_list() ->
 	{ok, StorageDirectory} = application:get_env(polyverse, storage_directory),
