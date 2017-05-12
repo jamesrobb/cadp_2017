@@ -12,21 +12,21 @@ To compile the software run the command
 
 When you want to start a node which will then connect to a network you MUST be within the /ebin/ directory of the project and run the command:
 
-`erl -sname "somename"@localhost -setcookie "cookie"` 
+`erl -sname NAME@localhost -setcookie COOKIE` 
 
-the "somename" can be replaced with the name you wish your node to have. The "cookie" can be replaced with the cookie of the network you wish to connect to. During the demostration this cookie will be named "mandm".
+Where NAME is the name you wish your node to have, and COOKIE is the cookie of the network you wish to connect to. During the demostration if you wish to connect to a node outside the school you must replace the localhost with " 'icecavern-public' " the COOKIE must be set and it MUST be set to "mandm". If you're connecting to a node within the same computer they will have the same COOKIE so the COOKIE must not be set.
 
 After you've started a node you MUST begin by starting the Polyverse application. This can be done by running the command:
 
-`Application:start(polyverse).`
+`application:start(polyverse).`
 
 ## Connecting
 
 After you've gotten the Polyverse application running you can connect to an existing network with the command:
 
-`polyverse:connect_to_node("Node")`
+`polyverse:connect_to_node(NODE)`
  
- Where Node is a node inside the network you would like to connect to. If you can not connect two primary causes can be the issue. Those causes are, the cookie you set when initially starting your node is not the same cookie as the cookie for the network, or the port used to connect the two nodes might be blocked (if you're inside RU they are).
+ Where NODE is a node inside the network you would like to connect to. If you can not connect two primary causes can be the issue. Those causes are, the cookie you set when initially starting your node is not the same cookie as the cookie for the network, or the port used to connect the two nodes might be blocked (if you're inside RU they are, but connecting withing the same computer will work fine).
 
 
 ## Commands inside the system
