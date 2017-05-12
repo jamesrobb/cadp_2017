@@ -166,4 +166,8 @@ The intent of this message is to notify a node to encrypt a file and add it to l
 
 Three possible replies exist. They are `file_added` to denote the file has been added to local storage, `error_encrypting_file` to denote an error during encryption, and `error_adding_file` to denote an error adding a file to local storage. In the latter two cases, any created files are to be removed.
 
+# Finite State Machine
+
+![Finite State Automata](http://i.imgur.com/r9cbKH1.jpg)
+
 
