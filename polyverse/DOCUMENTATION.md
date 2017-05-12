@@ -38,7 +38,9 @@ This document will outline how we realize a toy implementation of a secure distr
 
 Polyverse uses an interconnected series of nodes to produce its network. No node serves any role more important than any other node. Each node is tasked with the ability to receive files from a sender, and send files to a requester.
 
-For a node to connect to the network, it must be aware of at least one other node. Nodes in Polyverse are connected using the Erlang node connection system and epmd (Erlang Port Mapper Daemon). When a node A connects to node B, A is automatically connected to all the nodes B was connected to. Topologically this forms a complete graph and is not practical at a large scale. 
+For a node to connect to the network, it must be aware of at least one other node. Nodes in Polyverse are connected using the Erlang node connection system and epmd (Erlang Port Mapper Daemon). When a node A connects to node B, A is automatically connected to all the nodes B was connected to. Topologically this forms a complete graph and is not practical at a large scale.
+
+When a node connects to the network it syncs it's local file storage with the file storage of the node/nodes it just connected to. Syncing in Polyverse is a two way sync where when two nodes have different file storages after syncing both nodes will have the union of both node's file storages.
 
 ### Ideal Implementation
 
@@ -163,4 +165,5 @@ This message is sent as the tuple of the form `{add_local_file, FileName}` where
 The intent of this message is to notify a node to encrypt a file and add it to local storage.
 
 Three possible replies exist. They are `file_added` to denote the file has been added to local storage, `error_encrypting_file` to denote an error during encryption, and `error_adding_file` to denote an error adding a file to local storage. In the latter two cases, any created files are to be removed.
+
 

@@ -62,14 +62,21 @@ add_node(Node) ->
 			io:format("Unable to connect to node: ~s~n", [Node])
 	end.
 
+
+
+% Function to sync a node's file lsit with nodes in a list of nodes it connected to
+
+% Syncs it's local files with those it has connected to
 sync_with_nodes() ->
     LocalFiles = get_local_files_list(),
     NodesList = nodes(),
     sync_with_node(NodesList, LocalFiles).
-
+    
+% No more nodes to sync up with
 sync_with_node([], _) ->
     sync_done;
 
+% Get the head of the nodes list and sync files with the files of that
 sync_with_node([Node|Nodes], LocalFiles) ->
     io:format("attempting sync with ~w~n", [Node]),
     RemoteFiles = gen_server:call({polyverse_serv, Node}, {get_file_list}),
@@ -77,22 +84,30 @@ sync_with_node([Node|Nodes], LocalFiles) ->
     NewLocalFiles = get_local_files_list(),
     sync_with_node(Nodes, NewLocalFiles).
 
+% Function to handle sending and receiving files during syncing.
+
+% case both file lists are empty.
 sync_lists_and_send([], [], _, _) ->
     sync_done;
 
+% case where the head of the local file list and the remote is the same
 sync_lists_and_send([LocalHead|Local], [LocalHead|Remote], LocalNode, RemoteNode) ->
     sync_lists_and_send(Local, Remote, LocalNode, RemoteNode);
 
+% Case where remote's file list is empty but local still has files
 sync_lists_and_send([LocalHead|Local], [], LocalNode, RemoteNode) ->
     {ok, StorageDirectory} = application:get_env(polyverse, storage_directory),
     FileLocation = lists:concat([StorageDirectory, LocalHead]),
     polyverse_transfer:send_file(RemoteNode, FileLocation, LocalHead),
     sync_lists_and_send(Local, [], LocalNode, RemoteNode);
 
+% Case where local filelist is empty but remote still has files
 sync_lists_and_send([], [RemoteHead|Remote], LocalNode, RemoteNode) ->
     gen_server:call({polyverse_serv, RemoteNode}, {request_file, LocalNode, RemoteHead}),
     sync_lists_and_send([], Remote, LocalNode, RemoteNode);
 
+% Normal case, checks whether the head of local is in remotes list and whether head of remote is in local list
+% if either doesn't hold then either send a file or request a file respectively.
 sync_lists_and_send([LocalHead|Local], [RemoteHead|Remote], LocalNode, RemoteNode) ->
     LHinRemote = lists:member(LocalHead, Remote),
     RHinLocal = lists:member(RemoteHead, Local),
