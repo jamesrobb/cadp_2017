@@ -45,4 +45,10 @@ Where FILE is the path to a file you wish to add to the Polyverse network you're
 
 Where FILE the hash digest of a file currently on the Polyverse network.
 
+### List Files
+
+`polyverse:get_file_list()`
+
+Prints a list of hash digest you have in your local file storage.
+
 
