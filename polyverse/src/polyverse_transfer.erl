@@ -7,9 +7,17 @@ encrypt(InputFileName, OutputFileName, GpgId) ->
 	os:cmd(Command).
 
 decrypt(InputFileName, OutputFileName) ->
-	Command = lists:concat(['gpg --output ', OutputFileName, ' -d ', InputFileName]),
-	io:format("~s ~n", [Command]),
-	os:cmd(Command).
+	{ok, StorageDirectory} = application:get_env(polyverse, storage_directory),
+	FileLocation = lists:concat([StorageDirectory, InputFileName]),
+    % Checking whether the file exists.
+    case file:read_file(FileLocation) of
+        {ok, _} ->
+	        Command = lists:concat(['gpg --output ', OutputFileName, ' -d ', FileLocation]),
+            io:format("~s ~n", [Command]),
+            os:cmd(Command);
+        {error, Reason} ->
+            io:format("Something went wrong. Reason: ~w~n", [Reason])
+    end.
 
 receive_file(_Node, FileName, Binary) ->
 	io:format("Attempting to receive file.~n"),
@@ -17,7 +25,7 @@ receive_file(_Node, FileName, Binary) ->
 	FileLocation = lists:concat([StorageDirectory, FileName]),
 	io:format("Attempting to write received file ~s to ~s ~n", [FileName, FileLocation]),
 	{ok, WriteDevice} = file:open(FileLocation, [write, binary]),
-    file:write(WriteDevice, Binary), % error handling TODO
+    file:write(WriteDevice, Binary),
     file:close(WriteDevice),
 	Return = case file:open(FileLocation, [read, binary]) of
 		{ok, ReadDevice} ->
