@@ -1,6 +1,6 @@
 -module(polyverse).
 -behaviour(application).
--export([start/2, stop/1, add_file/1, get_file/1, get_file_list/0, connect_to_node/1]).
+-export([start/2, stop/1, add_file/1, get_file/1, decrypt_file/2, get_file_list/0, connect_to_node/1]).
  
 start(normal, Args) ->
 	io:format("Application pid: ~w ~n", [self()]),
@@ -17,6 +17,10 @@ add_file(FileName) ->
 % Get FileName from network (checks locally first, and then remotely)
 get_file(FileName) ->
 	polyverse_serv:get_file(FileName).
+
+% Decrypts Digest in local storage and saves it in Ebin
+decrypt_file(Digest, OutFile) ->
+    polyverse_transfer:decrypt(Digest, OutFile).
 
 % List files on this Polyverse node
 get_file_list() ->
