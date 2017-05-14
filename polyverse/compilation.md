@@ -111,7 +111,13 @@ Prints a list of hash digest you have in your local file storage.
 
 ### Decrypting files
 
-To decrypt files you have to be in a terminal and run the command:
+To decrypt files you can run the command:
+
+`polyverse:decrypt_file(DIGEST, OUTPUTFILE)`
+
+Where DIGEST is a string of a filename inside your local storage **storage1/**, and where OUTPUTFILE is a string that is the filename you wish the decrypted file should be stored in. The stored file will be stored in your **ebin/** folder.
+
+You can also go the manual route by running this command:
 
 `gpg --ouput OUTPUTFILE --decrypt ENCRYPTEDFILE`
 
