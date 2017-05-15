@@ -168,6 +168,10 @@ Three possible replies exist. They are `file_added` to denote the file has been 
 
 # Finite State Machine
 
+Below is a finite state machine (FSM) describing the behaviour of our Generic server model. In the FSM each node is a state in which our generic server could be in given the messages it receives, the messages are the edges in the FSM. 
+
+Some behaviour isn't explicitly defined in the FSM like the sync process, however when syncing a node just grabs its list of connected nodes, goes through each of them getting their file lists and comparing them with its own. All files that it doesn't have it sends a message requesting that file and every file the node its comparing with doesn't have it sends that node the file. So these processes are just repetitions of processes in the FSM.
+
 ![Finite State Automata](http://i.imgur.com/r9cbKH1.jpg)
 
 
