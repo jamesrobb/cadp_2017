@@ -1,8 +1,8 @@
-# Code structure
+# Code Structure
 
 ## Files
 
-The files in of the project are as follows, 
+The files of the project are as follows, 
 
 * ebin
   * polyverse.app
@@ -35,7 +35,7 @@ Example:
 
 ### storage1
 
-This is the folder provided in the **polyverse.app** file denoting where the encrypted files stored on Polyverse will be stored in local storage.
+This is the folder provided in the **polyverse.app** file denoting where the encrypted files stored on Polyverse will be stored locally.
 
 ## src
 
@@ -56,7 +56,7 @@ This file is the generic supervisor behaviour of our application. In this file w
 In this file much of the business logic that does not have anything to do with handling of calls is. In this file the functions that encrypt, decrypt, send, and receive files are realized.
 
 
-# How to compile and run the software
+# How To Compile and Run The Software
 
 ## Compiling
 
@@ -86,16 +86,18 @@ After you've gotten the Polyverse application running you can connect to an exis
  
  Where NODE is a node inside the network you would like to connect to. If you can not connect two primary causes can be the issue. Those causes are, the cookie you set when initially starting your node is not the same cookie as the cookie for the network, or the port used to connect the two nodes might be blocked (if you're inside RU they are, but connecting withing the same computer will work fine).
 
+ Note: NODE must be of the form user@host, and host cannot be an ip address. It is possible to assign a hostname to an ip address in the /etc/hosts file on most unix systems.
 
-## Commands inside the system
+
+## Commands Inside The System
 
 Polyverse has multiple commands you're able to run when you want to play around in the system. Those commands include
 
-### Adding files
+### Adding Files
 
 `polyverse:add_file(FILE)`
 
-Where FILE is the path to a file you wish to add to the Polyverse network you're currently connected to.
+Where FILE is the path to a file on a local disk you wish to add to the Polyverse network you're currently connected to.
 
 ### Requesting Files
 
@@ -109,7 +111,7 @@ Where FILE the hash digest of a file currently on the Polyverse network.
 
 Prints a list of hash digest you have in your local file storage.
 
-### Decrypting files
+### Decrypting Files
 
 To decrypt files you can run the command:
 
@@ -123,9 +125,9 @@ You can also go the manual route by running this command:
 
 Where OUTPUTFILE is the file you wish to decrypt your file into, and ENCRYPTEDFILE is a file inside **storage1**.
 
-# Usage scenarios
+# Usage Scenarios
 
-## General use case
+## General Use Case
 
 When starting to use Polyverse the first thing to do is to generate a gpg private key or use an existing one, to do this you can run the command:
 
